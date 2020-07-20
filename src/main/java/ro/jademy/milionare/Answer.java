@@ -14,7 +14,7 @@ public class Answer {
         return answer;
     }
 
-    public boolean isCorect() {
+    public boolean getIsCorect() {
         return isCorect;
     }
 

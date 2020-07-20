@@ -1,9 +1,24 @@
 package ro.jademy.milionare;
 
+import java.sql.*;
 import java.util.ArrayList;
 
 public class Main {
-    public static void main(String[] args) {
+
+    static String host = "jdbc:mysql://localhost:3306/milionaregame";
+    static String uName = "cosmin";
+    static String uPass = "";
+    static Connection con;
+
+    static {
+        try {
+            con = DriverManager.getConnection(host, uName, uPass);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) throws SQLException {
 
         Player player = new Player("Cosmin", 0, false);
         //Easy Questions
@@ -38,14 +53,9 @@ public class Main {
         thirdQuestion.add(answer45);
 
 
-        EasyQuestion easyQuestion1 = new EasyQuestion("Cine e bossul?", firstQuestion, 100);
-        EasyQuestion easyQuestion2 = new EasyQuestion("Cati bani am?", secondQuestion, 200);
-        EasyQuestion easyQuestion3 = new EasyQuestion("Cand plec la mare?", thirdQuestion, 300);
-
-        ArrayList<EasyQuestion> easyQuestions = new ArrayList<EasyQuestion>();
-        easyQuestions.add(easyQuestion1);
-        easyQuestions.add(easyQuestion2);
-        easyQuestions.add(easyQuestion3);
+        Question easyQuestion1 = new Question("Cine e bossul?", firstQuestion, 100, "easy");
+        Question easyQuestion2 = new Question("Cati bani am?", secondQuestion, 200, "easy");
+        Question easyQuestion3 = new Question("Cand plec la mare?", thirdQuestion, 300, "easy");
 
 
         //Medium Questions
@@ -80,14 +90,9 @@ public class Main {
         thirdQuestion1.add(answer93);
 
 
-        MediumQuestion mediumQuestion1 = new MediumQuestion("Cine a scris luceafarul?", firstQuestion1, 1000);
-        MediumQuestion mediumQuestion2 = new MediumQuestion("Crezi ca ai baut lapte de la aceiasi vaca ?", secondQuestion1, 3000);
-        MediumQuestion mediumQuestion3 = new MediumQuestion("De ce miros picioarele daca nu au nas ?", thirdQuestion1, 6000);
-
-        ArrayList<MediumQuestion> mediumQuestions = new ArrayList<MediumQuestion>();
-        mediumQuestions.add(mediumQuestion1);
-        mediumQuestions.add(mediumQuestion2);
-        mediumQuestions.add(mediumQuestion3);
+        Question mediumQuestion1 = new Question("Cine a scris luceafarul?", firstQuestion1, 1000, "medium");
+        Question mediumQuestion2 = new Question("Crezi ca ai baut lapte de la aceiasi vaca ?", secondQuestion1, 3000, "medium");
+        Question mediumQuestion3 = new Question("De ce miros picioarele daca nu au nas ?", thirdQuestion1, 6000, "medium");
 
 
         //Hard Questions
@@ -122,18 +127,94 @@ public class Main {
         thirdQuestion33.add(answer26);
 
 
-        HardQuestion hardQuestion1 = new HardQuestion("De ce beau oamenii apa?", firstQuestion11, 10000);
-        HardQuestion hardQuestion2 = new HardQuestion("De ce nu poti sa iti atingi cotul cu limba?", secondQuestion22, 15000);
-        HardQuestion hardQuestion3 = new HardQuestion("Care este masina care merge cel mai repede ?", thirdQuestion33, 30000);
+        Question hardQuestion1 = new Question("De ce beau oamenii apa?", firstQuestion11, 10000, "hard");
+        Question hardQuestion2 = new Question("De ce nu poti sa iti atingi cotul cu limba?", secondQuestion22, 15000, "hard");
+        Question hardQuestion3 = new Question("Care este masina care merge cel mai repede ?", thirdQuestion33, 30000, "hard");
 
-        ArrayList<HardQuestion> hardQuestions = new ArrayList<HardQuestion>();
+
+        ArrayList<Question> easyQuestions = new ArrayList<Question>();
+        easyQuestions.add(easyQuestion1);
+        easyQuestions.add(easyQuestion2);
+        easyQuestions.add(easyQuestion3);
+
+
+        ArrayList<Question> mediumQuestions = new ArrayList<Question>();
+        mediumQuestions.add(mediumQuestion1);
+        mediumQuestions.add(mediumQuestion2);
+        mediumQuestions.add(mediumQuestion3);
+
+
+        ArrayList<Question> hardQuestions = new ArrayList<Question>();
         hardQuestions.add(hardQuestion1);
         hardQuestions.add(hardQuestion2);
         hardQuestions.add(hardQuestion3);
 
-        Game game = new Game(easyQuestions, player, mediumQuestions, hardQuestions);
+        //Interne
+        ArrayList<ArrayList<Question>> questions = new ArrayList<ArrayList<Question>>();
+        questions.add(easyQuestions);
+        questions.add(mediumQuestions);
+        questions.add(hardQuestions);
+
+
+
+        //Din BAZA DE DATE
+        ArrayList<ArrayList<Question>> da = new ArrayList<ArrayList<Question>>();
+        da.add(createQuestions("easy"));
+        da.add(createQuestions("medium"));
+        da.add(createQuestions("hard"));
+
+
+
+        Game game = new Game(da, player);
         game.playGame();
 
-
     }
+
+    public static Question createQuestion(String dificulty, ArrayList<Answer> answers, int id) throws SQLException {
+        Question question = null;
+        String sql = "select * from question where dificulty=? and id_question=?";
+        PreparedStatement stat = con.prepareStatement(sql);
+        stat.setString(1, dificulty);
+        stat.setInt(2, id);
+        ResultSet rs = stat.executeQuery();
+        while (rs.next()) {
+            question = new Question(rs.getString("question"), answers, rs.getInt("value"), rs.getString("dificulty"));
+        }
+        return question;
+    }
+
+    public static ArrayList<Answer> createAnswers(int id) throws SQLException {
+        ArrayList<Answer> answers = new ArrayList<Answer>();
+        String sql = "SELECT answer.answer,answer.dificulty,answer.is_corect FROM question inner JOIN answer_question ON question.id_question =answer_question.id_question inner join answer on answer_question.id_answer=answer.id_answer where question.id_question=?";
+        PreparedStatement stat = con.prepareStatement(sql);
+        stat.setInt(1, id);
+        ResultSet rs = stat.executeQuery();
+        while (rs.next()) {
+            Answer answer = new Answer(rs.getString("answer"), rs.getBoolean("is_corect"));
+            answers.add(answer);
+        }
+        return answers;
+    }
+
+    public static ArrayList<Integer> questionsIdList() throws SQLException {
+        ArrayList<Integer> ids = new ArrayList<Integer>();
+        String sql = "select id_question from question";
+        Statement stat = con.createStatement();
+        ResultSet rs = stat.executeQuery(sql);
+        while (rs.next()) {
+            ids.add(rs.getInt("id_question"));
+        }
+        return ids;
+    }
+
+    public static ArrayList<Question> createQuestions(String dificulty) throws SQLException {
+        ArrayList<Integer> idList = questionsIdList();
+        ArrayList<Question> questions = new ArrayList<Question>();
+        for (int i = 1; i <= idList.size(); i++) {
+            questions.add(createQuestion(dificulty, createAnswers(i), i));
+        }
+        return questions;
+    }
+
+
 }

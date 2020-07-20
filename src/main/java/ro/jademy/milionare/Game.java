@@ -1,102 +1,98 @@
 package ro.jademy.milionare;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Game {
 
-    private ArrayList<EasyQuestion> easyQuestions;
-    private ArrayList<MediumQuestion> mediumQuestions;
-    private ArrayList<HardQuestion> hardQuestions;
+    private ArrayList<ArrayList<Question>> questions;
     private Player player;
 
 
-    public Game(ArrayList<EasyQuestion> easyQuestions, Player player, ArrayList<MediumQuestion> mediumQuestions, ArrayList<HardQuestion> hardQuestions) {
-        this.easyQuestions = easyQuestions;
-        this.mediumQuestions = mediumQuestions;
-        this.hardQuestions = hardQuestions;
+    public Game(ArrayList<ArrayList<Question>> questions, Player player) {
+        this.questions = questions;
         this.player = player;
     }
 
-
-    public int playEasyRound() {
-        for (EasyQuestion easyQuestion : easyQuestions) {
-            easyQuestion.printQuestion();
-            if (!player.getRemoveAnswers()) {
-                ask(easyQuestion);
+    //De paramatrizat
+    public void playRound() {
+        for (int i = 0; i < questions.size(); i++) {
+            for (int j = 0; j < questions.get(i).size(); j++) {
+                questions.get(i).get(j).printQuestion();
+                if (!player.getRemoveAnswers()) {
+                    ask(questions.get(i).get(j));
+                }
+                //if gueesed righ, continue
+                if (questions.get(i).get(j).guessAnswer()) {
+                    player.setMoney(player.getMoney() + questions.get(i).get(j).getValue());
+                    player.setMoney(player.getMoney() + questions.get(i).get(j).getValue());
+                    System.out.println("Good job, you reached " + player.getMoney() + "$");
+                } else {
+                    //verific la ce checkpoint esti si iti dau banii aia
+                    if (player.getMoney() < 600) {
+                        System.out.println("Sorry you lost, maybe next time, you will leave with 0$");
+                    } else if (player.getMoney() < 10600) {
+                        System.out.println("Sorry you lost, maybe next time, you will leave with " + 600 + "$");
+                    } else if (player.getMoney() < 65600) {
+                        System.out.println("Sorry you lost, maybe next time, you will leave with " + 10600 + "$");
+                    } else if (player.getMoney() == 65600) {
+                        System.out.println("Congratulations, you are a milionare now");
+                    }
+                    playAgain();
+                    break;
+                }
             }
-            //if gueesed righ, continue
-            if (easyQuestion.guessAnswer()) {
-                player.setMoney(player.getMoney() + easyQuestion.getValue());
-                System.out.println("Good job, you reached " + player.getMoney() + "$");
-            }
-            //guessed wrong, game stops
-            else {
-                System.out.println("Sorry you lost, maybe next time");
-                playAgain();
-            }
-            System.out.println("-----------------");
-
         }
-        return player.getMoney();
     }
 
-    public int playMediumRound(int money) {
-        System.out.println("Congratulations, you reached the first checkpoint ");
-        for (MediumQuestion mediumQuestion : mediumQuestions) {
-            mediumQuestion.printQuestion();
-            if (!player.getRemoveAnswers()) {
-                ask(mediumQuestion);
+    public void playRound2(ArrayList<ArrayList<Question>> questions) {
+        for (int i = 0; i < questions.size(); i++) {
+            for (int j = 0; j < questions.get(i).size(); j++) {
+                questions.get(i).get(j).printQuestion();
+                if (!player.getRemoveAnswers()) {
+                    ask(questions.get(i).get(j));
+                }
+                //if gueesed righ, continue
+                if (questions.get(i).get(j).guessAnswer()) {
+                    player.setMoney(player.getMoney() + questions.get(i).get(j).getValue());
+                    player.setMoney(player.getMoney() + questions.get(i).get(j).getValue());
+                    System.out.println("Good job, you reached " + player.getMoney() + "$");
+                } else {
+                    //verific la ce checkpoint esti si iti dau banii aia
+                    if (player.getMoney() < 600) {
+                        System.out.println("Sorry you lost, maybe next time, you will leave with 0$");
+                    } else if (player.getMoney() < 10600) {
+                        System.out.println("Sorry you lost, maybe next time, you will leave with " + 600 + "$");
+                    } else if (player.getMoney() < 65600) {
+                        System.out.println("Sorry you lost, maybe next time, you will leave with " + 10600 + "$");
+                    } else if (player.getMoney() == 65600) {
+                        System.out.println("Congratulations, you are a milionare now");
+                    }
+                    playAgain();
+                    break;
+                }
             }
-            //if gueesed righ, continue
-            if (mediumQuestion.guessAnswer()) {
-                player.setMoney(player.getMoney() + mediumQuestion.getValue());
-                System.out.println("Good job, you reached " + player.getMoney() + "$");
-            }
-            //guessed wrong, game stops
-            else {
-                System.out.println("Sorry you lost, maybe next time, you will leave with " + money + "$");
-                playAgain();
-            }
-            System.out.println("-----------------");
-
         }
-        return player.getMoney();
-
     }
 
-    public void playHardRound(int money) {
-        System.out.println("Congratulations, you reached the second checkpoint ");
-        for (HardQuestion hardQuestion : hardQuestions) {
-            hardQuestion.printQuestion();
-            if (!player.getRemoveAnswers()) {
-                ask(hardQuestion);
-            }
-            //if gueesed righ, continue
-            if (hardQuestion.guessAnswer()) {
-                player.setMoney(player.getMoney() + hardQuestion.getValue());
-                System.out.println("Good job, you reached " + player.getMoney() + "$");
-            }
-            //guessed wrong, game stops
-            else {
-                System.out.println("Sorry you lost, maybe next time, you will leave with " + money + "$");
-                playAgain();
-            }
-            System.out.println("-----------------");
 
+    public  ArrayList<ArrayList<Question>> randomizeAllQuestions() {
+        //For each sublist of questions we get new lists of random questions
+        ArrayList<ArrayList<Question>> questions1 = new ArrayList<ArrayList<Question>>();
+        for (int i = 0; i < questions.size(); i++) {
+            questions1.add(pickQuestions(questions.get(i)));
         }
-
+        return questions1;
     }
 
 
     public void playGame() {
         System.out.println("Welcome " + player.getName() + " to who want's to became a milionare");
-        int money = playEasyRound();
-        money = playMediumRound(money);
-        playHardRound(money);
-        System.out.println("Congratulations, you are a milionare now");
+        playRound();
+        //playRound2(randomizeAllQuestions());
         playAgain();
-
     }
 
     public void playAgain() {
@@ -104,6 +100,7 @@ public class Game {
         Scanner sc = new Scanner(System.in);
         String decision = sc.next();
         if (decision.equals("y")) {
+            player.setMoney(0);
             player.setRemoveAnswers(false);
             playGame();
         } else {
@@ -122,4 +119,35 @@ public class Game {
         }
     }
 
+    public ArrayList<Integer> randomizeQuestions(int bound, int howMany) {
+        //Generate x numbers random with no duplicates within a range
+        Random random = new Random();
+        ArrayList<Integer> numbers = new ArrayList<Integer>();
+        ArrayList<Integer> numberWithoutDuplicates = new ArrayList<Integer>();
+        for (int i = 0; i < 100; i++) {
+            int nr = random.nextInt(bound);
+            numbers.add(nr);
+        }
+
+        for (Integer number : numbers) {
+            if (!numberWithoutDuplicates.contains(number)) {
+                if (numberWithoutDuplicates.size() < howMany) {
+                    numberWithoutDuplicates.add(number);
+
+                } else break;
+            }
+        }
+
+        return numberWithoutDuplicates;
+    }
+
+    public ArrayList<Question> pickQuestions(ArrayList<Question> questions) {
+        // For each  question create a new list were added the random questions
+        ArrayList<Integer> numbers = randomizeQuestions(questions.size()-1, 3);
+        ArrayList<Question> questions1 = new ArrayList<Question>();
+        for (Integer number : numbers) {
+            questions1.add(questions.get(number));
+        }
+        return questions1;
+    }
 }

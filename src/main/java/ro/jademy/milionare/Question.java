@@ -10,11 +10,13 @@ public class Question {
     private String question;
     private ArrayList<Answer> answers;
     private int value;
+    private String difficulty;
 
-    public Question(String question, ArrayList<Answer> answers, int value) {
+    public Question(String question, ArrayList<Answer> answers, int value, String difficulty) {
         this.question = question;
         this.answers = answers;
         this.value = value;
+        this.difficulty = difficulty;
     }
 
     public String getQuestion() {
@@ -33,9 +35,9 @@ public class Question {
         System.out.println(question);
         for (int i = 0; i < answers.size(); i++) {
             if (i == 1) {
-                System.out.print(i + 1 + "." + answers.get(i) + "    " + "\n");
+                System.out.print(i + 1 + "." + answers.get(i) + "          " + "\n");
             } else {
-                System.out.print(i + 1 + "." + answers.get(i) + "    ");
+                System.out.print(i + 1 + "." + answers.get(i) + "         ");
 
             }
         }
@@ -43,7 +45,7 @@ public class Question {
 
     public int getCorectAnswer() {
         for (int i = 0; i < answers.size(); i++) {
-            if (answers.get(i).isCorect()) {
+            if (answers.get(i).getIsCorect()) {
                 return i;
             }
         }
@@ -87,7 +89,7 @@ public class Question {
 
     public int generateRandomNumber(int bound, int corectAnswer) {
         Random rand = new Random();
-        int number = 0;
+        int number;
         while (true) {
             number = rand.nextInt(bound);
             if (number != corectAnswer) {
