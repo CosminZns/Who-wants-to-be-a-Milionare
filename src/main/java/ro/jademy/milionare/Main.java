@@ -165,7 +165,7 @@ public class Main {
 
 
 
-        Game game = new Game(da, player);
+        Game game = new Game(questions, player);
         game.playGame();
 
     }
